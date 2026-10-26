@@ -60,6 +60,11 @@
     .arrow { display: grid; place-items: center; color: #a1a69e; }
     .arrow svg { width: 21px; height: 21px; }
     .reply-box { min-height: 176px; padding: 15px; border: 1px solid #e4e7df; border-radius: 12px; background: #f8f9f5; color: #333a34; font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
+    @keyframes sidecar-reveal { from { opacity: .35; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes sidecar-handoff { 0% { box-shadow: 0 0 0 0 rgba(49,94,75,.24); } 100% { box-shadow: 0 0 0 11px rgba(49,94,75,0); } }
+    .reply-box.is-ready { animation: sidecar-reveal .34s ease-out both; }
+    .button-primary.is-confirmed { animation: sidecar-handoff .65s ease-out; }
+    @media (prefers-reduced-motion: reduce) { .reply-box.is-ready, .button-primary.is-confirmed { animation: none !important; } }
     .reply-box.is-empty { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; color: #92988e; text-align: center; }
     .reply-icon { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #e5e8e0; border-radius: 11px; color: #829080; background: white; }
     .reply-icon svg { width: 17px; height: 17px; }
@@ -183,7 +188,9 @@
       }
 
       function showDraft(text) {
-        reply.classList.remove('is-empty');
+        reply.classList.remove('is-empty', 'is-ready');
+        void reply.offsetWidth;
+        reply.classList.add('is-ready');
         reply.textContent = text;
         reply.dataset.draft = text;
         copy.disabled = false;
@@ -205,6 +212,9 @@
         if (!text) return;
         try {
           await navigator.clipboard.writeText(text);
+          copy.classList.remove('is-confirmed');
+          void copy.offsetWidth;
+          copy.classList.add('is-confirmed');
           notify('Draft copied. You decide what happens next.');
         } catch (_) {
           const range = document.createRange();
